@@ -9,51 +9,26 @@
 </head>
 <body>
 
-<!-- Login Screen -->
+<!-- Login Screen - Sirf Papa Ke Liye -->
 <div id="loginScreen" class="login-container">
   <div class="login-card">
     <div class="login-header">
-      <h1>☕ Chai Hisaab</h1>
-      <p>Tea Packet Management</p>
+      <div class="app-icon">☕</div>
+      <h1>Chai Hisaab</h1>
+      <p class="welcome-text">Welcome Back!</p>
     </div>
     <form id="loginForm">
       <div class="input-group">
         <label>📱 Mobile Number</label>
-        <input type="tel" id="loginPhone" placeholder="9876543210" maxlength="10" required>
+        <input type="tel" id="loginPhone" placeholder="Enter your mobile number" maxlength="10" required>
       </div>
       <div class="input-group">
         <label>🔒 Password</label>
-        <input type="password" id="loginPassword" placeholder="••••••••" required>
+        <input type="password" id="loginPassword" placeholder="Enter your password" required>
       </div>
       <button type="submit" class="btn-login">Login</button>
     </form>
-<p class="toggle-text">New user? <a href="#" id="showRegister">Register</a></p>
-  </div>
-</div>
-
-<!-- Register Screen -->
-<div id="registerScreen" class="login-container" style="display: none;">
-  <div class="login-card">
-    <div class="login-header">
-      <h1>☕ Register</h1>
-      <p>Create your account</p>
-    </div>
-    <form id="registerForm">
-      <div class="input-group">
-        <label>👤 Full Name</label>
-        <input type="text" id="regName" placeholder="Ramesh Ji" required>
-      </div>
-      <div class="input-group">
-        <label>📱 Mobile Number</label>
-        <input type="tel" id="regPhone" placeholder="9876543210" maxlength="10" required>
-      </div>
-      <div class="input-group">
-        <label>🔒 Password</label>
-        <input type="password" id="regPassword" placeholder="••••••••" required>
-      </div>
-      <button type="submit" class="btn-login">Register</button>
-    </form>
-    <p class="toggle-text">Already have account? <a href="#" id="showLogin">Login</a></p>
+    <p class="footer-text">Secure access for shop owner only</p>
   </div>
 </div>
 
@@ -62,23 +37,27 @@
   <!-- Header -->
   <div class="app-header">
     <div class="header-top">
-      <h1>☕ Chai Hisaab</h1>
-      <div style="display: flex; gap: 10px;">
+      <div class="header-left">
+        <h1>☕ Chai Hisaab</h1>
         <span class="date-badge" id="dateDisplay"></span>
-        <button id="logoutBtn" class="logout-btn">🚪</button>
       </div>
+      <button id="logoutBtn" class="logout-btn" title="Logout">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+        </svg>
+      </button>
     </div>
     
     <!-- Inventory -->
     <div class="inventory-card">
       <div class="inventory-info">
-        <span style="font-size:1.5rem;">📦</span>
+        <span class="inventory-icon">📦</span>
         <div>
           <div class="inventory-value" id="availablePackets">0</div>
-          <div class="inventory-label">In Stock</div>
+          <div class="inventory-label">Packets in Stock</div>
         </div>
       </div>
-      <button class="inventory-btn" id="addInventoryBtn">+ Add</button>
+      <button class="inventory-btn" id="addInventoryBtn">+ Add Stock</button>
     </div>
     
     <div class="today-stats">
@@ -97,27 +76,30 @@
     <!-- Customers View -->
     <div id="view-customers" class="view active">
       <div class="search-box">
-        <span>🔍</span>
-        <input type="text" id="searchInput" placeholder="Search name or mobile..." autocomplete="off">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Search customer name or number..." autocomplete="off">
       </div>
-      <div id="customersList"></div>
-      <button class="btn btn-primary add-customer-btn" id="addCustomerBtn" style="width:100%;">➕ Add Customer</button>
+      <div id="customersList" class="customers-list"></div>
+      <button class="btn btn-primary btn-full" id="addCustomerBtn">➕ Add New Customer</button>
     </div>
 
     <!-- Udhaar View -->
     <div id="view-udhaar" class="view">
-      <div class="section-title">📋 Pending Udhaar</div>
-      <div id="udhaarList"></div>
+      <div class="section-header">
+        <h2 class="section-title">📋 Pending Payments</h2>
+        <span class="section-count" id="pendingCount">0</span>
+      </div>
+      <div id="udhaarList" class="udhaar-list"></div>
     </div>
 
     <!-- Summary View -->
     <div id="view-summary" class="view">
-      <div id="summaryContent"></div>
+      <div id="summaryContent" class="summary-content"></div>
     </div>
   </div>
 
   <!-- FAB -->
-  <button class="fab" id="fabAddSale">+</button>
+  <button class="fab" id="fabAddSale" title="Add Sale">+</button>
 
   <!-- Bottom Nav -->
   <nav class="bottom-nav">
@@ -136,19 +118,22 @@
   </nav>
 
   <!-- Toast -->
-  <div id="toast">Message</div>
+  <div id="toast" class="toast">Message</div>
 
   <!-- Inventory Modal -->
   <div class="modal" id="inventoryModal">
     <div class="modal-content">
-      <div class="modal-title">📦 Add Stock</div>
+      <div class="modal-header">
+        <h3 class="modal-title">📦 Add Stock</h3>
+        <button class="modal-close" onclick="closeModal('inventoryModal')">&times;</button>
+      </div>
       <div class="input-group">
-        <label>Packets to Add</label>
-        <input type="number" id="inventoryQty" min="1" value="10">
+        <label>Number of Packets</label>
+        <input type="number" id="inventoryQty" min="1" value="10" placeholder="Enter quantity">
       </div>
       <div class="modal-actions">
-        <button class="btn btn-danger" onclick="closeModal('inventoryModal')" style="flex:1; background:#FEE2E2;">Cancel</button>
-        <button class="btn btn-primary" id="saveInventory" style="flex:1">Add</button>
+        <button class="btn btn-outline" onclick="closeModal('inventoryModal')">Cancel</button>
+        <button class="btn btn-primary" id="saveInventory">Add Stock</button>
       </div>
     </div>
   </div>
@@ -156,18 +141,21 @@
   <!-- Customer Modal -->
   <div class="modal" id="customerModal">
     <div class="modal-content">
-      <div class="modal-title">New Customer</div>
-      <div class="input-group">
-        <label>Name *</label>
-        <input type="text" id="custName" placeholder="Ramesh Ji">
+      <div class="modal-header">
+        <h3 class="modal-title">➕ New Customer</h3>
+        <button class="modal-close" onclick="closeModal('customerModal')">&times;</button>
       </div>
       <div class="input-group">
-        <label>Mobile (Optional)</label>
-        <input type="tel" id="custMobile" placeholder="9876543210">
+        <label>Customer Name *</label>
+        <input type="text" id="custName" placeholder="Enter customer name" autocomplete="off">
+      </div>
+      <div class="input-group">
+        <label>Mobile Number (Optional)</label>
+        <input type="tel" id="custMobile" placeholder="Enter mobile number" maxlength="10">
       </div>
       <div class="modal-actions">
-        <button class="btn btn-danger" onclick="closeModal('customerModal')" style="flex:1; background:#FEE2E2;">Cancel</button>
-        <button class="btn btn-primary" id="saveCustomer" style="flex:1">Save</button>
+        <button class="btn btn-outline" onclick="closeModal('customerModal')">Cancel</button>
+        <button class="btn btn-primary" id="saveCustomer">Save Customer</button>
       </div>
     </div>
   </div>
@@ -175,27 +163,30 @@
   <!-- Sale Modal -->
   <div class="modal" id="saleModal">
     <div class="modal-content">
-      <div class="modal-title">Add Sale</div>
+      <div class="modal-header">
+        <h3 class="modal-title">📊 New Sale</h3>
+        <button class="modal-close" onclick="closeModal('saleModal')">&times;</button>
+      </div>
       <div class="input-group">
-        <label>Customer</label>
+        <label>Select Customer</label>
         <select id="saleCustomerSelect"></select>
       </div>
       <div class="input-group">
-        <label>Packets</label>
-        <input type="number" id="saleQty" min="0.5" step="0.5" value="1">
+        <label>Number of Packets</label>
+        <input type="number" id="saleQty" min="0.5" step="0.5" value="1" placeholder="Enter quantity">
       </div>
       <div class="input-group">
-        <label>Price/Packet (₹)</label>
-        <input type="number" id="salePrice" min="0" value="10">
+        <label>Price per Packet (₹)</label>
+        <input type="number" id="salePrice" min="0" value="10" placeholder="Enter price">
       </div>
       <div class="checkbox-wrapper">
         <input type="checkbox" id="saleUdhaarCheck" checked>
-        <label style="font-weight:600;">Add to Udhaar</label>
+        <label>Add to Udhaar (Credit)</label>
       </div>
       <div id="availabilityWarning" class="warning-text"></div>
       <div class="modal-actions">
-        <button class="btn btn-danger" onclick="closeModal('saleModal')" style="flex:1; background:#FEE2E2;">Cancel</button>
-        <button class="btn btn-primary" id="saveSale" style="flex:1">Confirm</button>
+        <button class="btn btn-outline" onclick="closeModal('saleModal')">Cancel</button>
+        <button class="btn btn-primary" id="saveSale">Confirm Sale</button>
       </div>
     </div>
   </div>
@@ -203,27 +194,32 @@
   <!-- Payment Modal -->
   <div class="modal" id="paymentModal">
     <div class="modal-content">
-      <div class="modal-title">Receive Payment</div>
+      <div class="modal-header">
+        <h3 class="modal-title">💵 Receive Payment</h3>
+        <button class="modal-close" onclick="closeModal('paymentModal')">&times;</button>
+      </div>
       <input type="hidden" id="payCustomerId">
-      <div class="input-group">
-        <label>Customer</label>
-        <div style="font-size:1.1rem; font-weight:700;" id="payCustomerName"></div>
-      </div>
-      <div class="input-group">
-        <label>Pending Udhaar</label>
-        <div style="font-size:1.4rem; font-weight:800; color:var(--danger);">₹<span id="payDueAmount">0</span></div>
-      </div>
-      <div class="input-group">
-        <label>Credit Packets</label>
-        <div style="font-size:1rem;">📦 <span id="payCreditPackets">0</span> packets</div>
+      <div class="payment-info">
+        <div class="payment-customer">
+          <span class="label">Customer</span>
+          <span class="value" id="payCustomerName"></span>
+        </div>
+        <div class="payment-due">
+          <span class="label">Pending Amount</span>
+          <span class="value" id="payDueAmount">₹0</span>
+        </div>
+        <div class="payment-packets">
+          <span class="label">Credit Packets</span>
+          <span class="value" id="payCreditPackets">0</span>
+        </div>
       </div>
       <div class="input-group">
         <label>Amount Received (₹)</label>
-        <input type="number" id="payAmount" min="1">
+        <input type="number" id="payAmount" min="1" placeholder="Enter amount">
       </div>
       <div class="modal-actions">
-        <button class="btn btn-danger" onclick="closeModal('paymentModal')" style="flex:1; background:#FEE2E2;">Cancel</button>
-        <button class="btn btn-success" id="submitPayment" style="flex:1">Receive</button>
+        <button class="btn btn-outline" onclick="closeModal('paymentModal')">Cancel</button>
+        <button class="btn btn-success" id="submitPayment">Confirm Payment</button>
       </div>
     </div>
   </div>
