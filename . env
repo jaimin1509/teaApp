@@ -1,0 +1,3 @@
+MONGODB_URI=mongodb+srv://cha_data:chadatauser@1509@chaclust.nkg0nnm.mongodb.net/chaihisaab?retryWrites=true&w=majority&appName=chaclust
+JWT_SECRET=chai_hisaab_secret_key_2024
+PORT=10000
