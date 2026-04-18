@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Chai Hisaab • Tea Packet Manager</title>
+  <title>Chai Hisaab</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<!-- Login Screen - Sirf Papa Ke Liye -->
+<!-- Login Screen -->
 <div id="loginScreen" class="login-container">
   <div class="login-card">
     <div class="login-header">
@@ -20,21 +20,48 @@
     <form id="loginForm">
       <div class="input-group">
         <label>📱 Mobile Number</label>
-        <input type="tel" id="loginPhone" placeholder="Enter your mobile number" maxlength="10" required>
+        <input type="tel" id="loginPhone" placeholder="Enter mobile number" maxlength="10" required>
       </div>
       <div class="input-group">
         <label>🔒 Password</label>
-        <input type="password" id="loginPassword" placeholder="Enter your password" required>
+        <input type="password" id="loginPassword" placeholder="Enter password" required>
       </div>
       <button type="submit" class="btn-login">Login</button>
     </form>
+    <p class="toggle-text">New user? <a href="#" id="showRegister">Create Account</a></p>
     <p class="footer-text">Secure access for shop owner only</p>
+  </div>
+</div>
+
+<!-- Register Screen -->
+<div id="registerScreen" class="login-container" style="display: none;">
+  <div class="login-card">
+    <div class="login-header">
+      <div class="app-icon">☕</div>
+      <h1>Create Account</h1>
+      <p class="welcome-text">Set up your shop</p>
+    </div>
+    <form id="registerForm">
+      <div class="input-group">
+        <label>👤 Your Name</label>
+        <input type="text" id="regName" placeholder="Enter your name" required>
+      </div>
+      <div class="input-group">
+        <label>📱 Mobile Number</label>
+        <input type="tel" id="regPhone" placeholder="10-digit mobile number" maxlength="10" required>
+      </div>
+      <div class="input-group">
+        <label>🔒 Password</label>
+        <input type="password" id="regPassword" placeholder="Create a password" required>
+      </div>
+      <button type="submit" class="btn-login">Register</button>
+    </form>
+    <p class="toggle-text">Already have account? <a href="#" id="showLogin">Login</a></p>
   </div>
 </div>
 
 <!-- Main App -->
 <div id="mainApp" style="display: none;">
-  <!-- Header -->
   <div class="app-header">
     <div class="header-top">
       <div class="header-left">
@@ -48,7 +75,6 @@
       </button>
     </div>
     
-    <!-- Inventory -->
     <div class="inventory-card">
       <div class="inventory-info">
         <span class="inventory-icon">📦</span>
@@ -73,17 +99,15 @@
   </div>
 
   <div class="container">
-    <!-- Customers View -->
     <div id="view-customers" class="view active">
       <div class="search-box">
         <span class="search-icon">🔍</span>
-        <input type="text" id="searchInput" placeholder="Search customer name or number..." autocomplete="off">
+        <input type="text" id="searchInput" placeholder="Search customer..." autocomplete="off">
       </div>
       <div id="customersList" class="customers-list"></div>
       <button class="btn btn-primary btn-full" id="addCustomerBtn">➕ Add New Customer</button>
     </div>
 
-    <!-- Udhaar View -->
     <div id="view-udhaar" class="view">
       <div class="section-header">
         <h2 class="section-title">📋 Pending Payments</h2>
@@ -92,16 +116,13 @@
       <div id="udhaarList" class="udhaar-list"></div>
     </div>
 
-    <!-- Summary View -->
     <div id="view-summary" class="view">
       <div id="summaryContent" class="summary-content"></div>
     </div>
   </div>
 
-  <!-- FAB -->
   <button class="fab" id="fabAddSale" title="Add Sale">+</button>
 
-  <!-- Bottom Nav -->
   <nav class="bottom-nav">
     <div class="nav-item active" data-tab="customers">
       <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
@@ -117,10 +138,9 @@
     </div>
   </nav>
 
-  <!-- Toast -->
   <div id="toast" class="toast">Message</div>
 
-  <!-- Inventory Modal -->
+  <!-- Modals -->
   <div class="modal" id="inventoryModal">
     <div class="modal-content">
       <div class="modal-header">
@@ -129,7 +149,7 @@
       </div>
       <div class="input-group">
         <label>Number of Packets</label>
-        <input type="number" id="inventoryQty" min="1" value="10" placeholder="Enter quantity">
+        <input type="number" id="inventoryQty" min="1" value="10">
       </div>
       <div class="modal-actions">
         <button class="btn btn-outline" onclick="closeModal('inventoryModal')">Cancel</button>
@@ -138,7 +158,6 @@
     </div>
   </div>
 
-  <!-- Customer Modal -->
   <div class="modal" id="customerModal">
     <div class="modal-content">
       <div class="modal-header">
@@ -147,7 +166,7 @@
       </div>
       <div class="input-group">
         <label>Customer Name *</label>
-        <input type="text" id="custName" placeholder="Enter customer name" autocomplete="off">
+        <input type="text" id="custName" placeholder="Enter customer name">
       </div>
       <div class="input-group">
         <label>Mobile Number (Optional)</label>
@@ -160,7 +179,6 @@
     </div>
   </div>
 
-  <!-- Sale Modal -->
   <div class="modal" id="saleModal">
     <div class="modal-content">
       <div class="modal-header">
@@ -173,11 +191,11 @@
       </div>
       <div class="input-group">
         <label>Number of Packets</label>
-        <input type="number" id="saleQty" min="0.5" step="0.5" value="1" placeholder="Enter quantity">
+        <input type="number" id="saleQty" min="0.5" step="0.5" value="1">
       </div>
       <div class="input-group">
         <label>Price per Packet (₹)</label>
-        <input type="number" id="salePrice" min="0" value="10" placeholder="Enter price">
+        <input type="number" id="salePrice" min="0" value="10">
       </div>
       <div class="checkbox-wrapper">
         <input type="checkbox" id="saleUdhaarCheck" checked>
@@ -191,7 +209,6 @@
     </div>
   </div>
 
-  <!-- Payment Modal -->
   <div class="modal" id="paymentModal">
     <div class="modal-content">
       <div class="modal-header">
@@ -200,22 +217,13 @@
       </div>
       <input type="hidden" id="payCustomerId">
       <div class="payment-info">
-        <div class="payment-customer">
-          <span class="label">Customer</span>
-          <span class="value" id="payCustomerName"></span>
-        </div>
-        <div class="payment-due">
-          <span class="label">Pending Amount</span>
-          <span class="value" id="payDueAmount">₹0</span>
-        </div>
-        <div class="payment-packets">
-          <span class="label">Credit Packets</span>
-          <span class="value" id="payCreditPackets">0</span>
-        </div>
+        <div class="payment-customer"><span class="label">Customer</span><span class="value" id="payCustomerName"></span></div>
+        <div class="payment-due"><span class="label">Pending Amount</span><span class="value" id="payDueAmount">₹0</span></div>
+        <div class="payment-packets"><span class="label">Credit Packets</span><span class="value" id="payCreditPackets">0</span></div>
       </div>
       <div class="input-group">
         <label>Amount Received (₹)</label>
-        <input type="number" id="payAmount" min="1" placeholder="Enter amount">
+        <input type="number" id="payAmount" min="1">
       </div>
       <div class="modal-actions">
         <button class="btn btn-outline" onclick="closeModal('paymentModal')">Cancel</button>
