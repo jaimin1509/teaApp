@@ -201,6 +201,8 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
   authToken = null;
   currentUser = null;
   customers = [];
+  inventory = { available: 0 };
+  today = { date: new Date().toISOString().slice(0,10), packetsSold: 0 };
   showLoginScreen();
   document.getElementById('loginPhone').value = '';
   document.getElementById('loginPassword').value = '';
@@ -209,8 +211,8 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
 
 // Initialize App
 async function initApp() {
-  updateHeaderStats();
   await loadData();
+  updateHeaderStats();
   renderCustomers();
   setupEventListeners();
   setInterval(checkDailyReset, 60000);
@@ -340,13 +342,17 @@ function renderUdhaar() {
 
 function renderSummary() {
   const totalUdhaar = customers.reduce((s, c) => s + (c.udhaar || 0), 0);
-  const paidCount = customers.filter(c => c.udhaar === 0).length;
-  const top5 = [...customers].sort((a, b) => (b.totalPackets || 0) - (a.totalPackets || 0)).slice(0, 5);
+  const totalPaidPackets = customers.reduce((s, c) => s + (c.paidPackets || 0), 0);
+  const top5 = [...customers].filter(c => c.totalPackets > 0).sort((a, b) => (b.totalPackets || 0) - (a.totalPackets || 0)).slice(0, 5);
   
   let topHtml = '';
-  top5.forEach((c, i) => {
-    topHtml += `<div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border-color);"><span><strong>#${i+1}</strong> ${c.name}</span><span style="background:var(--primary-light); padding:4px 12px; border-radius:20px;">${c.totalPackets || 0} pkts</span></div>`;
-  });
+  if (top5.length > 0) {
+    top5.forEach((c, i) => {
+      topHtml += `<div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border-color);"><span><strong>#${i+1}</strong> ${c.name}</span><span style="background:var(--primary-light); padding:4px 12px; border-radius:20px;">${c.totalPackets || 0} pkts</span></div>`;
+    });
+  } else {
+    topHtml = '<p style="text-align:center; color:var(--text-muted);">No sales yet</p>';
+  }
   
   const container = document.getElementById('summaryContent');
   if (!container) return;
@@ -356,11 +362,11 @@ function renderSummary() {
       <div class="summary-card"><div class="big-number">${inventory.available || 0}</div><div class="label">In Stock</div></div>
       <div class="summary-card"><div class="big-number">${today.packetsSold || 0}</div><div class="label">Sold Today</div></div>
       <div class="summary-card"><div class="big-number" style="color:var(--danger);">₹${totalUdhaar}</div><div class="label">Total Udhaar</div></div>
-      <div class="summary-card"><div class="big-number" style="color:var(--success);">${paidCount}</div><div class="label">Fully Paid</div></div>
+      <div class="summary-card"><div class="big-number" style="color:var(--success);">${totalPaidPackets}</div><div class="label">Total Paid Packets</div></div>
     </div>
     
     <div class="view-header"><h2 class="view-title">🏆 Top Customers</h2></div>
-    <div class="customer-card" style="padding:8px 16px;">${topHtml || '<p style="text-align:center;">No data</p>'}</div>
+    <div class="customer-card" style="padding:8px 16px;">${topHtml}</div>
     
     <div class="view-header" style="margin-top:20px;"><h2 class="view-title">📊 Quick Stats</h2></div>
     <div class="customer-card" style="text-align:center;">
@@ -528,7 +534,7 @@ function setupEventListeners() {
   
   document.getElementById('fabAddSale')?.addEventListener('click', () => {
     if (customers.length === 0) { showToast('Add a customer first'); return; }
-    if (inventory.available <= 0) { showToast('No stock!'); return; }
+    if (inventory.available <= 0) { showToast('No stock! Add inventory first'); return; }
     
     const select = document.getElementById('saleCustomerSelect');
     select.innerHTML = customers.map(c => `<option value="${c._id}">${c.name}</option>`).join('');
@@ -568,7 +574,7 @@ function setupEventListeners() {
     if (action === 'quickSale') {
       const cust = customers.find(c => c._id === id);
       if (cust) {
-        if (inventory.available <= 0) { showToast('No stock!'); return; }
+        if (inventory.available <= 0) { showToast('No stock! Add inventory first'); return; }
         const select = document.getElementById('saleCustomerSelect');
         select.innerHTML = customers.map(c => `<option value="${c._id}">${c.name}</option>`).join('');
         select.value = cust._id;
