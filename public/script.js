@@ -54,7 +54,7 @@ document.addEventListener('click', (e) => {
 });
 
 // Helper Functions
-function showToast(msg, duration = 2000) {
+function showToast(msg, duration = 1500) {
   const toast = document.getElementById('toast');
   toast.textContent = msg;
   toast.classList.add('show');
@@ -107,12 +107,12 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
   const password = document.getElementById('regPassword').value;
   
   if (!name || !phone || !password) {
-    showToast('❌ All fields are required');
+    showToast('All fields are required');
     return;
   }
   
   if (phone.length !== 10) {
-    showToast('❌ Enter valid 10-digit mobile number');
+    showToast('Enter valid 10-digit mobile');
     return;
   }
   
@@ -136,16 +136,16 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
       localStorage.setItem('chaiUser', JSON.stringify(currentUser));
       
       showMainApp();
-      showToast('✅ Account created successfully!');
+      showToast('Account created!');
       initApp();
     } else {
-      showToast('❌ ' + (data.error || 'Registration failed'));
+      showToast(data.error || 'Registration failed');
     }
   } catch (error) {
-    showToast('❌ Connection error');
+    showToast('Connection error');
   } finally {
     btn.disabled = false;
-    btn.textContent = 'Register';
+    btn.textContent = 'Create Account';
   }
 });
 
@@ -157,7 +157,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   const password = document.getElementById('loginPassword').value;
   
   if (!phone || !password) {
-    showToast('❌ Please enter mobile and password');
+    showToast('Enter mobile and password');
     return;
   }
   
@@ -181,13 +181,13 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
       localStorage.setItem('chaiUser', JSON.stringify(currentUser));
       
       showMainApp();
-      showToast('✅ Login successful!');
+      showToast('Login successful!');
       initApp();
     } else {
-      showToast('❌ ' + (data.error || 'Invalid credentials'));
+      showToast(data.error || 'Invalid credentials');
     }
   } catch (error) {
-    showToast('❌ Connection error');
+    showToast('Connection error');
   } finally {
     btn.disabled = false;
     btn.textContent = 'Login';
@@ -204,7 +204,7 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
   showLoginScreen();
   document.getElementById('loginPhone').value = '';
   document.getElementById('loginPassword').value = '';
-  showToast('👋 Logged out');
+  showToast('Logged out');
 });
 
 // Initialize App
@@ -278,22 +278,22 @@ function renderCustomers() {
   filtered.forEach(c => {
     html += `
       <div class="customer-card">
-        <div class="customer-header">
+        <div class="card-header">
           <div class="avatar">${getInitials(c.name)}</div>
-          <div class="customer-title">
+          <div class="card-title">
             <div class="customer-name">${c.name}</div>
-            <div class="customer-mobile">📞 ${c.mobile || 'No mobile'}</div>
+            <div class="customer-phone">📞 ${c.mobile || 'No mobile'}</div>
           </div>
         </div>
-        <div class="stats-container">
-          <div class="stat-box"><div class="stat-label-small">📦 Total</div><div class="stat-number">${c.totalPackets || 0}</div></div>
-          <div class="stat-box credit-box"><div class="stat-label-small">⚠️ Credit</div><div class="stat-number credit-amount">${c.creditPackets || 0}</div></div>
-          <div class="stat-box paid-box"><div class="stat-label-small">✅ Paid</div><div class="stat-number">${c.paidPackets || 0}</div></div>
-          <div class="stat-box ${c.udhaar > 0 ? 'credit-box' : ''}"><div class="stat-label-small">💰 Due</div><div class="stat-number ${c.udhaar > 0 ? 'credit-amount' : ''}">₹${c.udhaar || 0}</div></div>
+        <div class="stats-grid">
+          <div class="stat-box"><div class="label">Total</div><div class="value">${c.totalPackets || 0}</div></div>
+          <div class="stat-box credit"><div class="label">Credit</div><div class="value">${c.creditPackets || 0}</div></div>
+          <div class="stat-box paid"><div class="label">Paid</div><div class="value">${c.paidPackets || 0}</div></div>
+          <div class="stat-box ${c.udhaar > 0 ? 'credit' : ''}"><div class="label">Due</div><div class="value">₹${c.udhaar || 0}</div></div>
         </div>
         <div class="card-actions">
-          <button class="btn btn-primary" data-action="quickSale" data-id="${c._id}">➕ Sell</button>
-          <button class="btn btn-danger" data-action="deleteCustomer" data-id="${c._id}">🗑️</button>
+          <button class="btn btn-primary" data-action="quickSale" data-id="${c._id}">Sell</button>
+          <button class="btn btn-danger" data-action="deleteCustomer" data-id="${c._id}">Delete</button>
         </div>
       </div>
     `;
@@ -320,17 +320,17 @@ function renderUdhaar() {
   dueCustomers.forEach(c => {
     html += `
       <div class="customer-card">
-        <div class="customer-header">
+        <div class="card-header">
           <div class="avatar" style="background:#FEE2E2;">${getInitials(c.name)}</div>
-          <div class="customer-title">
+          <div class="card-title">
             <div class="customer-name">${c.name}</div>
-            <div class="customer-mobile">📦 ${c.creditPackets || 0} credit packets</div>
+            <div class="customer-phone">📦 ${c.creditPackets || 0} credit packets</div>
           </div>
         </div>
         <div style="text-align:center; margin:12px 0;">
-          <span style="font-size:2rem; font-weight:800; color:var(--danger);">₹${c.udhaar}</span>
+          <span style="font-size:1.8rem; font-weight:800; color:var(--danger);">₹${c.udhaar}</span>
         </div>
-        <button class="btn btn-success" data-action="payUdhaar" data-id="${c._id}" style="width:100%;">💸 Receive Payment</button>
+        <button class="btn btn-success" data-action="payUdhaar" data-id="${c._id}" style="width:100%;">Receive Payment</button>
       </div>
     `;
   });
@@ -345,7 +345,7 @@ function renderSummary() {
   
   let topHtml = '';
   top5.forEach((c, i) => {
-    topHtml += `<div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border-light);"><span><strong>#${i+1}</strong> ${c.name}</span><span style="background:var(--primary-light); padding:4px 12px; border-radius:20px;">${c.totalPackets || 0} pkts</span></div>`;
+    topHtml += `<div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border-color);"><span><strong>#${i+1}</strong> ${c.name}</span><span style="background:var(--primary-light); padding:4px 12px; border-radius:20px;">${c.totalPackets || 0} pkts</span></div>`;
   });
   
   const container = document.getElementById('summaryContent');
@@ -353,16 +353,16 @@ function renderSummary() {
   
   container.innerHTML = `
     <div class="summary-grid">
-      <div class="summary-card"><div class="value">${inventory.available || 0}</div><div class="label">In Stock</div></div>
-      <div class="summary-card"><div class="value">${today.packetsSold || 0}</div><div class="label">Sold Today</div></div>
-      <div class="summary-card"><div class="value" style="color:var(--danger);">₹${totalUdhaar}</div><div class="label">Total Udhaar</div></div>
-      <div class="summary-card"><div class="value" style="color:var(--success);">${paidCount}</div><div class="label">Fully Paid</div></div>
+      <div class="summary-card"><div class="big-number">${inventory.available || 0}</div><div class="label">In Stock</div></div>
+      <div class="summary-card"><div class="big-number">${today.packetsSold || 0}</div><div class="label">Sold Today</div></div>
+      <div class="summary-card"><div class="big-number" style="color:var(--danger);">₹${totalUdhaar}</div><div class="label">Total Udhaar</div></div>
+      <div class="summary-card"><div class="big-number" style="color:var(--success);">${paidCount}</div><div class="label">Fully Paid</div></div>
     </div>
     
-    <div class="section-header" style="margin-top:20px;"><h2 class="section-title">🏆 Top Customers</h2></div>
+    <div class="view-header"><h2 class="view-title">🏆 Top Customers</h2></div>
     <div class="customer-card" style="padding:8px 16px;">${topHtml || '<p style="text-align:center;">No data</p>'}</div>
     
-    <div class="section-header" style="margin-top:20px;"><h2 class="section-title">📊 Quick Stats</h2></div>
+    <div class="view-header" style="margin-top:20px;"><h2 class="view-title">📊 Quick Stats</h2></div>
     <div class="customer-card" style="text-align:center;">
       <p>Total Customers: <strong>${customers.length}</strong></p>
       <p style="margin-top:8px;">Total Packets Sold: <strong>${customers.reduce((s,c) => s + (c.totalPackets || 0), 0)}</strong></p>
@@ -381,14 +381,14 @@ async function refreshUI() {
 }
 
 async function addCustomer(name, mobile) {
-  if (!name.trim()) { showToast('❌ Name required'); return false; }
+  if (!name.trim()) { showToast('Name required'); return false; }
   try {
     await apiCall('/customers', 'POST', { name: name.trim(), mobile: mobile.trim() });
-    showToast(`✅ ${name} added`);
+    showToast(`${name} added`);
     await refreshUI();
     return true;
   } catch (error) {
-    showToast('❌ ' + (error.message || 'Error'));
+    showToast(error.message || 'Error');
     return false;
   }
 }
@@ -401,10 +401,10 @@ async function deleteCustomer(id) {
   
   try {
     await apiCall(`/customers/${id}`, 'DELETE');
-    showToast(`🗑️ ${cust.name} removed`);
+    showToast(`${cust.name} removed`);
     await refreshUI();
   } catch (error) {
-    showToast('❌ Error');
+    showToast('Error');
   }
 }
 
@@ -412,8 +412,8 @@ async function addSale(customerId, qty, price, isUdhaar) {
   qty = parseFloat(qty);
   price = parseFloat(price);
   
-  if (qty <= 0 || price < 0) { showToast('❌ Invalid input'); return false; }
-  if (qty > inventory.available) { showToast(`❌ Only ${inventory.available} in stock`); return false; }
+  if (qty <= 0 || price < 0) { showToast('Invalid input'); return false; }
+  if (qty > inventory.available) { showToast(`Only ${inventory.available} in stock`); return false; }
   
   const cust = customers.find(c => c._id === customerId);
   if (!cust) return false;
@@ -437,11 +437,11 @@ async function addSale(customerId, qty, price, isUdhaar) {
     const todayStr = new Date().toISOString().slice(0,10);
     await apiCall('/stats/today', 'PUT', { date: todayStr, packets: today.packetsSold, credit: isUdhaar ? qty : 0, paid: isUdhaar ? 0 : qty });
     
-    showToast(`✅ ${qty} packets sold`);
+    showToast(`${qty} packets sold`);
     await refreshUI();
     return true;
   } catch (error) {
-    showToast('❌ Error');
+    showToast('Error');
     return false;
   }
 }
@@ -450,8 +450,8 @@ async function addPayment(customerId, amount) {
   amount = parseFloat(amount);
   const cust = customers.find(c => c._id === customerId);
   if (!cust) return false;
-  if (amount <= 0) { showToast('❌ Enter amount'); return false; }
-  if (amount > cust.udhaar) { showToast(`❌ Due: ₹${cust.udhaar}`); return false; }
+  if (amount <= 0) { showToast('Enter amount'); return false; }
+  if (amount > cust.udhaar) { showToast(`Due: ₹${cust.udhaar}`); return false; }
   
   try {
     const ratio = amount / cust.udhaar;
@@ -462,27 +462,27 @@ async function addPayment(customerId, amount) {
     cust.paidPackets += packetsToConvert;
     
     await apiCall(`/customers/${customerId}`, 'PUT', cust);
-    showToast(`💵 ₹${amount} received`);
+    showToast(`₹${amount} received`);
     await refreshUI();
     return true;
   } catch (error) {
-    showToast('❌ Error');
+    showToast('Error');
     return false;
   }
 }
 
 async function addInventory(qty) {
   qty = parseInt(qty);
-  if (qty <= 0) { showToast('❌ Enter quantity'); return false; }
+  if (qty <= 0) { showToast('Enter quantity'); return false; }
   
   try {
     inventory.available += qty;
     await apiCall('/inventory', 'PUT', { available: inventory.available });
-    showToast(`📦 Added ${qty} packets`);
+    showToast(`Added ${qty} packets`);
     await refreshUI();
     return true;
   } catch (error) {
-    showToast('❌ Error');
+    showToast('Error');
     return false;
   }
 }
@@ -509,7 +509,10 @@ function setupEventListeners() {
   document.getElementById('addInventoryBtn')?.addEventListener('click', () => openModal('inventoryModal'));
   document.getElementById('saveInventory')?.addEventListener('click', async () => {
     const qty = document.getElementById('inventoryQty').value;
-    if (await addInventory(qty)) closeModal('inventoryModal');
+    if (await addInventory(qty)) {
+      closeModal('inventoryModal');
+      document.getElementById('inventoryQty').value = 10;
+    }
   });
   
   document.getElementById('addCustomerBtn')?.addEventListener('click', () => openModal('customerModal'));
@@ -517,15 +520,15 @@ function setupEventListeners() {
     const name = document.getElementById('custName').value;
     const mobile = document.getElementById('custMobile').value;
     if (await addCustomer(name, mobile)) {
+      closeModal('customerModal');
       document.getElementById('custName').value = '';
       document.getElementById('custMobile').value = '';
-      closeModal('customerModal');
     }
   });
   
   document.getElementById('fabAddSale')?.addEventListener('click', () => {
-    if (customers.length === 0) { showToast('❌ Add a customer first'); return; }
-    if (inventory.available <= 0) { showToast('❌ No stock!'); return; }
+    if (customers.length === 0) { showToast('Add a customer first'); return; }
+    if (inventory.available <= 0) { showToast('No stock!'); return; }
     
     const select = document.getElementById('saleCustomerSelect');
     select.innerHTML = customers.map(c => `<option value="${c._id}">${c.name}</option>`).join('');
@@ -538,7 +541,7 @@ function setupEventListeners() {
   
   document.getElementById('saleQty')?.addEventListener('input', () => {
     const qty = parseFloat(document.getElementById('saleQty').value) || 0;
-    document.getElementById('availabilityWarning').textContent = qty > inventory.available ? `⚠️ Only ${inventory.available} available!` : '';
+    document.getElementById('availabilityWarning').textContent = qty > inventory.available ? `Only ${inventory.available} available!` : '';
   });
   
   document.getElementById('saveSale')?.addEventListener('click', async () => {
@@ -565,7 +568,7 @@ function setupEventListeners() {
     if (action === 'quickSale') {
       const cust = customers.find(c => c._id === id);
       if (cust) {
-        if (inventory.available <= 0) { showToast('❌ No stock!'); return; }
+        if (inventory.available <= 0) { showToast('No stock!'); return; }
         const select = document.getElementById('saleCustomerSelect');
         select.innerHTML = customers.map(c => `<option value="${c._id}">${c.name}</option>`).join('');
         select.value = cust._id;
@@ -590,7 +593,7 @@ function setupEventListeners() {
   });
   
   document.querySelectorAll('.modal').forEach(m => {
-    m.addEventListener('click', (e) => { if (e.target === m) m.classList.remove('show'); });
+    m.addEventListener('click', (e) => { if (e.target === m) closeModal(m.id); });
   });
 }
 
