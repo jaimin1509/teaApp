@@ -87,7 +87,35 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Auth Routes
+// Register Route
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { phone, password, name } = req.body;
+    console.log('📝 Register attempt:', phone);
+    
+    const existingUser = await User.findOne({ phone });
+    if (existingUser) {
+      return res.status(400).json({ error: 'User already exists' });
+    }
+    
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = new User({ phone, password: hashedPassword, name });
+    await user.save();
+    
+    const inventory = new Inventory({ userId: user._id, available: 0 });
+    await inventory.save();
+    
+    const token = jwt.sign({ userId: user._id }, JWT_SECRET);
+    console.log('✅ Registration successful:', phone);
+    
+    res.json({ token, user: { id: user._id, name: user.name, phone: user.phone } });
+  } catch (error) {
+    console.error('Register error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Login Route
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { phone, password } = req.body;
@@ -221,5 +249,5 @@ app.get('*', (req, res) => {
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📡 API Health: http://localhost:${PORT}/api/health`);
+  console.log(`📡 Register: http://localhost:${PORT}/api/auth/register`);
 });
