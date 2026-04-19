@@ -53,20 +53,41 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// Helper Functions
-function showToast(msg, duration = 1500) {
+// Helper Functions - Apple Style Toast
+function showToast(msg, duration = 1800) {
   const toast = document.getElementById('toast');
   toast.textContent = msg;
+  toast.style.transition = 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
   toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), duration);
+  
+  setTimeout(() => {
+    toast.style.transition = 'all 0.25s ease-out';
+    toast.classList.remove('show');
+  }, duration);
 }
 
 function closeModal(id) {
-  document.getElementById(id).classList.remove('show');
+  const modal = document.getElementById(id);
+  modal.style.transition = 'opacity 0.2s ease-out';
+  modal.classList.remove('show');
+  
+  // Reset body scroll
+  document.body.style.overflow = '';
 }
 
 function openModal(id) {
-  document.getElementById(id).classList.add('show');
+  const modal = document.getElementById(id);
+  modal.style.transition = 'opacity 0.25s ease-out';
+  modal.classList.add('show');
+  
+  // Prevent body scroll
+  document.body.style.overflow = 'hidden';
+  
+  // Focus first input if exists
+  setTimeout(() => {
+    const firstInput = modal.querySelector('input, select');
+    if (firstInput) firstInput.focus();
+  }, 100);
 }
 
 function getInitials(name) {
@@ -118,7 +139,7 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
   
   const btn = e.target.querySelector('button');
   btn.disabled = true;
-  btn.textContent = 'Creating...';
+  btn.innerHTML = '<span class="loading-spinner"></span> Creating...';
   
   try {
     const res = await fetch(`${API_URL}/auth/register`, {
@@ -136,7 +157,7 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
       localStorage.setItem('chaiUser', JSON.stringify(currentUser));
       
       showMainApp();
-      showToast('Account created!');
+      showToast('✨ Account created successfully!');
       initApp();
     } else {
       showToast(data.error || 'Registration failed');
@@ -163,7 +184,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   
   const btn = e.target.querySelector('button');
   btn.disabled = true;
-  btn.textContent = 'Logging in...';
+  btn.innerHTML = '<span class="loading-spinner"></span> Logging in...';
   
   try {
     const res = await fetch(`${API_URL}/auth/login`, {
@@ -181,7 +202,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
       localStorage.setItem('chaiUser', JSON.stringify(currentUser));
       
       showMainApp();
-      showToast('Login successful!');
+      showToast('👋 Welcome back!');
       initApp();
     } else {
       showToast(data.error || 'Invalid credentials');
@@ -206,11 +227,12 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
   showLoginScreen();
   document.getElementById('loginPhone').value = '';
   document.getElementById('loginPassword').value = '';
-  showToast('Logged out');
+  showToast('👋 Logged out');
 });
 
 // Initialize App
 async function initApp() {
+  showToast('📦 Loading your data...', 1000);
   await loadData();
   updateHeaderStats();
   renderCustomers();
@@ -237,8 +259,10 @@ async function loadData() {
 
 function updateHeaderStats() {
   const totalUdhaar = customers.reduce((s, c) => s + (c.udhaar || 0), 0);
-  document.getElementById('availablePackets').textContent = inventory.available || 0;
-  document.getElementById('headerTodayPackets').textContent = today.packetsSold || 0;
+  
+  // Smooth number animation
+  animateValue('availablePackets', inventory.available || 0);
+  animateValue('headerTodayPackets', today.packetsSold || 0);
   document.getElementById('headerTotalUdhaar').textContent = '₹' + totalUdhaar;
   
   const pendingCount = customers.filter(c => c.udhaar > 0).length;
@@ -249,6 +273,33 @@ function updateHeaderStats() {
   document.getElementById('dateDisplay').textContent = d.toLocaleDateString('en-IN', { 
     weekday: 'short', day: '2-digit', month: 'short' 
   });
+}
+
+function animateValue(elementId, value) {
+  const el = document.getElementById(elementId);
+  if (!el) return;
+  
+  const current = parseInt(el.textContent) || 0;
+  if (current === value) {
+    el.textContent = value;
+    return;
+  }
+  
+  const duration = 300;
+  const step = (value - current) / (duration / 16);
+  let currentValue = current;
+  
+  const animate = () => {
+    currentValue += step;
+    if ((step > 0 && currentValue >= value) || (step < 0 && currentValue <= value)) {
+      el.textContent = value;
+    } else {
+      el.textContent = Math.round(currentValue);
+      requestAnimationFrame(animate);
+    }
+  };
+  
+  requestAnimationFrame(animate);
 }
 
 function checkDailyReset() {
@@ -279,7 +330,7 @@ function renderCustomers() {
   let html = '';
   filtered.forEach(c => {
     html += `
-      <div class="customer-card">
+      <div class="customer-card" style="animation: fadeInUp 0.3s ease-out;">
         <div class="card-header">
           <div class="avatar">${getInitials(c.name)}</div>
           <div class="card-title">
@@ -321,7 +372,7 @@ function renderUdhaar() {
   let html = '';
   dueCustomers.forEach(c => {
     html += `
-      <div class="customer-card">
+      <div class="customer-card" style="animation: fadeInUp 0.3s ease-out;">
         <div class="card-header">
           <div class="avatar" style="background:#FEE2E2;">${getInitials(c.name)}</div>
           <div class="card-title">
@@ -359,17 +410,17 @@ function renderSummary() {
   
   container.innerHTML = `
     <div class="summary-grid">
-      <div class="summary-card"><div class="big-number">${inventory.available || 0}</div><div class="label">In Stock</div></div>
-      <div class="summary-card"><div class="big-number">${today.packetsSold || 0}</div><div class="label">Sold Today</div></div>
-      <div class="summary-card"><div class="big-number" style="color:var(--danger);">₹${totalUdhaar}</div><div class="label">Total Udhaar</div></div>
-      <div class="summary-card"><div class="big-number" style="color:var(--success);">${totalPaidPackets}</div><div class="label">Total Paid Packets</div></div>
+      <div class="summary-card" style="animation: fadeInUp 0.3s ease-out;"><div class="big-number">${inventory.available || 0}</div><div class="label">In Stock</div></div>
+      <div class="summary-card" style="animation: fadeInUp 0.35s ease-out;"><div class="big-number">${today.packetsSold || 0}</div><div class="label">Sold Today</div></div>
+      <div class="summary-card" style="animation: fadeInUp 0.4s ease-out;"><div class="big-number" style="color:var(--danger);">₹${totalUdhaar}</div><div class="label">Total Udhaar</div></div>
+      <div class="summary-card" style="animation: fadeInUp 0.45s ease-out;"><div class="big-number" style="color:var(--success);">${totalPaidPackets}</div><div class="label">Total Paid Packets</div></div>
     </div>
     
     <div class="view-header"><h2 class="view-title">🏆 Top Customers</h2></div>
-    <div class="customer-card" style="padding:8px 16px;">${topHtml}</div>
+    <div class="customer-card" style="padding:8px 16px; animation: fadeInUp 0.5s ease-out;">${topHtml}</div>
     
     <div class="view-header" style="margin-top:20px;"><h2 class="view-title">📊 Quick Stats</h2></div>
-    <div class="customer-card" style="text-align:center;">
+    <div class="customer-card" style="text-align:center; animation: fadeInUp 0.55s ease-out;">
       <p>Total Customers: <strong>${customers.length}</strong></p>
       <p style="margin-top:8px;">Total Packets Sold: <strong>${customers.reduce((s,c) => s + (c.totalPackets || 0), 0)}</strong></p>
     </div>
@@ -388,13 +439,16 @@ async function refreshUI() {
 
 async function addCustomer(name, mobile) {
   if (!name.trim()) { showToast('Name required'); return false; }
+  
+  showToast('Adding customer...', 800);
+  
   try {
     await apiCall('/customers', 'POST', { name: name.trim(), mobile: mobile.trim() });
-    showToast(`${name} added`);
+    showToast(`✨ ${name} added successfully!`);
     await refreshUI();
     return true;
   } catch (error) {
-    showToast(error.message || 'Error');
+    showToast(error.message || 'Error adding customer');
     return false;
   }
 }
@@ -402,15 +456,17 @@ async function addCustomer(name, mobile) {
 async function deleteCustomer(id) {
   const cust = customers.find(c => c._id === id);
   if (!cust) return;
-  if (cust.udhaar > 0 && !confirm(`${cust.name} owes ₹${cust.udhaar}. Delete?`)) return;
+  if (cust.udhaar > 0 && !confirm(`${cust.name} owes ₹${cust.udhaar}. Delete anyway?`)) return;
   if (!confirm(`Delete ${cust.name}?`)) return;
+  
+  showToast('Deleting...', 800);
   
   try {
     await apiCall(`/customers/${id}`, 'DELETE');
-    showToast(`${cust.name} removed`);
+    showToast(`🗑️ ${cust.name} removed`);
     await refreshUI();
   } catch (error) {
-    showToast('Error');
+    showToast('Error deleting customer');
   }
 }
 
@@ -425,6 +481,8 @@ async function addSale(customerId, qty, price, isUdhaar) {
   if (!cust) return false;
   
   const total = qty * price;
+  
+  showToast('Processing sale...', 800);
   
   try {
     inventory.available -= qty;
@@ -443,11 +501,11 @@ async function addSale(customerId, qty, price, isUdhaar) {
     const todayStr = new Date().toISOString().slice(0,10);
     await apiCall('/stats/today', 'PUT', { date: todayStr, packets: today.packetsSold, credit: isUdhaar ? qty : 0, paid: isUdhaar ? 0 : qty });
     
-    showToast(`${qty} packets sold`);
+    showToast(`✅ ${qty} packets sold to ${cust.name}`);
     await refreshUI();
     return true;
   } catch (error) {
-    showToast('Error');
+    showToast('Error processing sale');
     return false;
   }
 }
@@ -456,8 +514,10 @@ async function addPayment(customerId, amount) {
   amount = parseFloat(amount);
   const cust = customers.find(c => c._id === customerId);
   if (!cust) return false;
-  if (amount <= 0) { showToast('Enter amount'); return false; }
-  if (amount > cust.udhaar) { showToast(`Due: ₹${cust.udhaar}`); return false; }
+  if (amount <= 0) { showToast('Enter valid amount'); return false; }
+  if (amount > cust.udhaar) { showToast(`Due amount is ₹${cust.udhaar}`); return false; }
+  
+  showToast('Processing payment...', 800);
   
   try {
     const ratio = amount / cust.udhaar;
@@ -468,27 +528,29 @@ async function addPayment(customerId, amount) {
     cust.paidPackets += packetsToConvert;
     
     await apiCall(`/customers/${customerId}`, 'PUT', cust);
-    showToast(`₹${amount} received`);
+    showToast(`💵 ₹${amount} received from ${cust.name}`);
     await refreshUI();
     return true;
   } catch (error) {
-    showToast('Error');
+    showToast('Error processing payment');
     return false;
   }
 }
 
 async function addInventory(qty) {
   qty = parseInt(qty);
-  if (qty <= 0) { showToast('Enter quantity'); return false; }
+  if (qty <= 0) { showToast('Enter valid quantity'); return false; }
+  
+  showToast('Adding stock...', 800);
   
   try {
     inventory.available += qty;
     await apiCall('/inventory', 'PUT', { available: inventory.available });
-    showToast(`Added ${qty} packets`);
+    showToast(`📦 Added ${qty} packets to inventory`);
     await refreshUI();
     return true;
   } catch (error) {
-    showToast('Error');
+    showToast('Error adding inventory');
     return false;
   }
 }
@@ -497,12 +559,25 @@ function setupEventListeners() {
   document.getElementById('searchInput')?.addEventListener('input', renderCustomers);
   
   document.querySelectorAll('.nav-item').forEach(item => {
-    item.addEventListener('click', () => {
+    item.addEventListener('click', (e) => {
       document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
       item.classList.add('active');
       const tab = item.dataset.tab;
-      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-      document.getElementById(`view-${tab}`).classList.add('active');
+      
+      // Smooth view transition
+      const views = document.querySelectorAll('.view');
+      views.forEach(v => {
+        v.style.transition = 'opacity 0.2s ease-out';
+        v.classList.remove('active');
+      });
+      
+      const activeView = document.getElementById(`view-${tab}`);
+      activeView.style.opacity = '0';
+      activeView.classList.add('active');
+      
+      setTimeout(() => {
+        activeView.style.opacity = '1';
+      }, 10);
       
       document.getElementById('fabAddSale').classList.toggle('hidden', tab !== 'customers');
       
@@ -547,7 +622,14 @@ function setupEventListeners() {
   
   document.getElementById('saleQty')?.addEventListener('input', () => {
     const qty = parseFloat(document.getElementById('saleQty').value) || 0;
-    document.getElementById('availabilityWarning').textContent = qty > inventory.available ? `Only ${inventory.available} available!` : '';
+    const warning = document.getElementById('availabilityWarning');
+    if (qty > inventory.available) {
+      warning.textContent = `Only ${inventory.available} available!`;
+      warning.style.animation = 'shake 0.3s ease-out';
+      setTimeout(() => warning.style.animation = '', 300);
+    } else {
+      warning.textContent = '';
+    }
   });
   
   document.getElementById('saveSale')?.addEventListener('click', async () => {
@@ -567,6 +649,10 @@ function setupEventListeners() {
   document.body.addEventListener('click', (e) => {
     const btn = e.target.closest('[data-action]');
     if (!btn) return;
+    
+    // Button press animation
+    btn.style.transform = 'scale(0.95)';
+    setTimeout(() => btn.style.transform = '', 100);
     
     const action = btn.dataset.action;
     const id = btn.dataset.id;
@@ -598,9 +684,65 @@ function setupEventListeners() {
     }
   });
   
+  // Close modals with smooth animation
   document.querySelectorAll('.modal').forEach(m => {
-    m.addEventListener('click', (e) => { if (e.target === m) closeModal(m.id); });
+    m.addEventListener('click', (e) => { 
+      if (e.target === m) {
+        closeModal(m.id);
+        document.body.style.overflow = '';
+      }
+    });
+  });
+  
+  // Keyboard support
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal.show').forEach(m => closeModal(m.id));
+    }
   });
 }
+
+// Add CSS animations dynamically
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+  }
+  
+  .loading-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    display: inline-block;
+    animation: spin 0.6s linear infinite;
+    margin-right: 6px;
+  }
+  
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  
+  .view {
+    transition: opacity 0.2s ease-out;
+  }
+  
+  .modal {
+    transition: opacity 0.25s ease-out;
+  }
+  
+  .btn:active {
+    transform: scale(0.96) !important;
+  }
+`;
+document.head.appendChild(style);
 
 window.closeModal = closeModal;
