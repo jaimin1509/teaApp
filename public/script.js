@@ -14,6 +14,7 @@ try {
 let customers = [];
 let inventory = { available: 0 };
 let today = { date: new Date().toISOString().slice(0,10), packetsSold: 0 };
+let toastTimeout = null;
 
 // Check login on load
 if (authToken && currentUser) {
@@ -53,41 +54,66 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// Helper Functions - Apple Style Toast
-function showToast(msg, duration = 1800) {
+// Helper Functions - Perfect Toast Animation
+function showToast(msg, duration = 2000, type = 'success') {
   const toast = document.getElementById('toast');
+  
+  // Clear previous timeout
+  if (toastTimeout) clearTimeout(toastTimeout);
+  
+  // Set message and type
   toast.textContent = msg;
-  toast.style.transition = 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+  toast.className = `toast-message toast-${type}`;
+  
+  // Force reflow
+  toast.offsetHeight;
+  
+  // Show with animation
   toast.classList.add('show');
   
-  setTimeout(() => {
-    toast.style.transition = 'all 0.25s ease-out';
+  // Hide after duration
+  toastTimeout = setTimeout(() => {
     toast.classList.remove('show');
+    toastTimeout = null;
   }, duration);
 }
 
 function closeModal(id) {
   const modal = document.getElementById(id);
-  modal.style.transition = 'opacity 0.2s ease-out';
-  modal.classList.remove('show');
+  const content = modal.querySelector('.modal-content');
   
-  // Reset body scroll
-  document.body.style.overflow = '';
+  content.style.transform = 'translateY(100%)';
+  modal.style.opacity = '0';
+  
+  setTimeout(() => {
+    modal.classList.remove('show');
+    content.style.transform = '';
+    modal.style.opacity = '';
+    document.body.style.overflow = '';
+  }, 250);
 }
 
 function openModal(id) {
   const modal = document.getElementById(id);
-  modal.style.transition = 'opacity 0.25s ease-out';
-  modal.classList.add('show');
+  const content = modal.querySelector('.modal-content');
   
-  // Prevent body scroll
+  modal.classList.add('show');
+  modal.style.opacity = '0';
+  content.style.transform = 'translateY(100%)';
+  
+  // Force reflow
+  modal.offsetHeight;
+  
+  modal.style.opacity = '1';
+  content.style.transform = 'translateY(0)';
+  
   document.body.style.overflow = 'hidden';
   
-  // Focus first input if exists
+  // Focus first input
   setTimeout(() => {
     const firstInput = modal.querySelector('input, select');
     if (firstInput) firstInput.focus();
-  }, 100);
+  }, 300);
 }
 
 function getInitials(name) {
@@ -128,12 +154,12 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
   const password = document.getElementById('regPassword').value;
   
   if (!name || !phone || !password) {
-    showToast('All fields are required');
+    showToast('Please fill all fields', 2000, 'error');
     return;
   }
   
   if (phone.length !== 10) {
-    showToast('Enter valid 10-digit mobile');
+    showToast('Enter valid 10-digit mobile', 2000, 'error');
     return;
   }
   
@@ -157,13 +183,13 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
       localStorage.setItem('chaiUser', JSON.stringify(currentUser));
       
       showMainApp();
-      showToast('✨ Account created successfully!');
+      showToast('✨ Account created! Welcome aboard', 2500, 'success');
       initApp();
     } else {
-      showToast(data.error || 'Registration failed');
+      showToast(data.error || 'Registration failed', 2000, 'error');
     }
   } catch (error) {
-    showToast('Connection error');
+    showToast('Connection error. Try again', 2000, 'error');
   } finally {
     btn.disabled = false;
     btn.textContent = 'Create Account';
@@ -178,7 +204,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   const password = document.getElementById('loginPassword').value;
   
   if (!phone || !password) {
-    showToast('Enter mobile and password');
+    showToast('Enter mobile and password', 2000, 'error');
     return;
   }
   
@@ -202,13 +228,13 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
       localStorage.setItem('chaiUser', JSON.stringify(currentUser));
       
       showMainApp();
-      showToast('👋 Welcome back!');
+      showToast('👋 Welcome back!', 2000, 'success');
       initApp();
     } else {
-      showToast(data.error || 'Invalid credentials');
+      showToast(data.error || 'Invalid credentials', 2000, 'error');
     }
   } catch (error) {
-    showToast('Connection error');
+    showToast('Connection error', 2000, 'error');
   } finally {
     btn.disabled = false;
     btn.textContent = 'Login';
@@ -227,12 +253,11 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
   showLoginScreen();
   document.getElementById('loginPhone').value = '';
   document.getElementById('loginPassword').value = '';
-  showToast('👋 Logged out');
+  showToast('👋 Logged out successfully', 2000, 'success');
 });
 
 // Initialize App
 async function initApp() {
-  showToast('📦 Loading your data...', 1000);
   await loadData();
   updateHeaderStats();
   renderCustomers();
@@ -260,7 +285,6 @@ async function loadData() {
 function updateHeaderStats() {
   const totalUdhaar = customers.reduce((s, c) => s + (c.udhaar || 0), 0);
   
-  // Smooth number animation
   animateValue('availablePackets', inventory.available || 0);
   animateValue('headerTodayPackets', today.packetsSold || 0);
   document.getElementById('headerTotalUdhaar').textContent = '₹' + totalUdhaar;
@@ -285,7 +309,7 @@ function animateValue(elementId, value) {
     return;
   }
   
-  const duration = 300;
+  const duration = 400;
   const step = (value - current) / (duration / 16);
   let currentValue = current;
   
@@ -328,9 +352,9 @@ function renderCustomers() {
   }
   
   let html = '';
-  filtered.forEach(c => {
+  filtered.forEach((c, index) => {
     html += `
-      <div class="customer-card" style="animation: fadeInUp 0.3s ease-out;">
+      <div class="customer-card" style="animation: fadeInUp 0.3s ease-out ${index * 0.03}s both;">
         <div class="card-header">
           <div class="avatar">${getInitials(c.name)}</div>
           <div class="card-title">
@@ -370,9 +394,9 @@ function renderUdhaar() {
   }
   
   let html = '';
-  dueCustomers.forEach(c => {
+  dueCustomers.forEach((c, index) => {
     html += `
-      <div class="customer-card" style="animation: fadeInUp 0.3s ease-out;">
+      <div class="customer-card" style="animation: fadeInUp 0.3s ease-out ${index * 0.03}s both;">
         <div class="card-header">
           <div class="avatar" style="background:#FEE2E2;">${getInitials(c.name)}</div>
           <div class="card-title">
@@ -410,17 +434,17 @@ function renderSummary() {
   
   container.innerHTML = `
     <div class="summary-grid">
-      <div class="summary-card" style="animation: fadeInUp 0.3s ease-out;"><div class="big-number">${inventory.available || 0}</div><div class="label">In Stock</div></div>
-      <div class="summary-card" style="animation: fadeInUp 0.35s ease-out;"><div class="big-number">${today.packetsSold || 0}</div><div class="label">Sold Today</div></div>
-      <div class="summary-card" style="animation: fadeInUp 0.4s ease-out;"><div class="big-number" style="color:var(--danger);">₹${totalUdhaar}</div><div class="label">Total Udhaar</div></div>
-      <div class="summary-card" style="animation: fadeInUp 0.45s ease-out;"><div class="big-number" style="color:var(--success);">${totalPaidPackets}</div><div class="label">Total Paid Packets</div></div>
+      <div class="summary-card" style="animation: fadeInUp 0.3s ease-out 0s both;"><div class="big-number">${inventory.available || 0}</div><div class="label">In Stock</div></div>
+      <div class="summary-card" style="animation: fadeInUp 0.3s ease-out 0.05s both;"><div class="big-number">${today.packetsSold || 0}</div><div class="label">Sold Today</div></div>
+      <div class="summary-card" style="animation: fadeInUp 0.3s ease-out 0.1s both;"><div class="big-number" style="color:var(--danger);">₹${totalUdhaar}</div><div class="label">Total Udhaar</div></div>
+      <div class="summary-card" style="animation: fadeInUp 0.3s ease-out 0.15s both;"><div class="big-number" style="color:var(--success);">${totalPaidPackets}</div><div class="label">Total Paid Packets</div></div>
     </div>
     
     <div class="view-header"><h2 class="view-title">🏆 Top Customers</h2></div>
-    <div class="customer-card" style="padding:8px 16px; animation: fadeInUp 0.5s ease-out;">${topHtml}</div>
+    <div class="customer-card" style="padding:8px 16px; animation: fadeInUp 0.3s ease-out 0.2s both;">${topHtml}</div>
     
     <div class="view-header" style="margin-top:20px;"><h2 class="view-title">📊 Quick Stats</h2></div>
-    <div class="customer-card" style="text-align:center; animation: fadeInUp 0.55s ease-out;">
+    <div class="customer-card" style="text-align:center; animation: fadeInUp 0.3s ease-out 0.25s both;">
       <p>Total Customers: <strong>${customers.length}</strong></p>
       <p style="margin-top:8px;">Total Packets Sold: <strong>${customers.reduce((s,c) => s + (c.totalPackets || 0), 0)}</strong></p>
     </div>
@@ -438,17 +462,20 @@ async function refreshUI() {
 }
 
 async function addCustomer(name, mobile) {
-  if (!name.trim()) { showToast('Name required'); return false; }
+  if (!name.trim()) { 
+    showToast('Please enter customer name', 2000, 'error'); 
+    return false; 
+  }
   
-  showToast('Adding customer...', 800);
+  showToast('Adding customer...', 1000, 'info');
   
   try {
     await apiCall('/customers', 'POST', { name: name.trim(), mobile: mobile.trim() });
-    showToast(`✨ ${name} added successfully!`);
+    showToast(`✨ ${name} added successfully!`, 2000, 'success');
     await refreshUI();
     return true;
   } catch (error) {
-    showToast(error.message || 'Error adding customer');
+    showToast(error.message || 'Error adding customer', 2000, 'error');
     return false;
   }
 }
@@ -459,14 +486,14 @@ async function deleteCustomer(id) {
   if (cust.udhaar > 0 && !confirm(`${cust.name} owes ₹${cust.udhaar}. Delete anyway?`)) return;
   if (!confirm(`Delete ${cust.name}?`)) return;
   
-  showToast('Deleting...', 800);
+  showToast('Deleting...', 1000, 'info');
   
   try {
     await apiCall(`/customers/${id}`, 'DELETE');
-    showToast(`🗑️ ${cust.name} removed`);
+    showToast(`🗑️ ${cust.name} removed`, 2000, 'success');
     await refreshUI();
   } catch (error) {
-    showToast('Error deleting customer');
+    showToast('Error deleting customer', 2000, 'error');
   }
 }
 
@@ -474,15 +501,19 @@ async function addSale(customerId, qty, price, isUdhaar) {
   qty = parseFloat(qty);
   price = parseFloat(price);
   
-  if (qty <= 0 || price < 0) { showToast('Invalid input'); return false; }
-  if (qty > inventory.available) { showToast(`Only ${inventory.available} in stock`); return false; }
+  if (qty <= 0 || price < 0) { 
+    showToast('Invalid quantity or price', 2000, 'error'); 
+    return false; 
+  }
+  if (qty > inventory.available) { 
+    showToast(`Only ${inventory.available} packets in stock`, 2000, 'error'); 
+    return false; 
+  }
   
   const cust = customers.find(c => c._id === customerId);
   if (!cust) return false;
   
-  const total = qty * price;
-  
-  showToast('Processing sale...', 800);
+  showToast('Processing sale...', 1000, 'info');
   
   try {
     inventory.available -= qty;
@@ -491,7 +522,7 @@ async function addSale(customerId, qty, price, isUdhaar) {
     cust.totalPackets = (cust.totalPackets || 0) + qty;
     if (isUdhaar) {
       cust.creditPackets = (cust.creditPackets || 0) + qty;
-      cust.udhaar = (cust.udhaar || 0) + total;
+      cust.udhaar = (cust.udhaar || 0) + (qty * price);
     } else {
       cust.paidPackets = (cust.paidPackets || 0) + qty;
     }
@@ -499,13 +530,18 @@ async function addSale(customerId, qty, price, isUdhaar) {
     
     today.packetsSold += qty;
     const todayStr = new Date().toISOString().slice(0,10);
-    await apiCall('/stats/today', 'PUT', { date: todayStr, packets: today.packetsSold, credit: isUdhaar ? qty : 0, paid: isUdhaar ? 0 : qty });
+    await apiCall('/stats/today', 'PUT', { 
+      date: todayStr, 
+      packets: today.packetsSold, 
+      credit: isUdhaar ? qty : 0, 
+      paid: isUdhaar ? 0 : qty 
+    });
     
-    showToast(`✅ ${qty} packets sold to ${cust.name}`);
+    showToast(`✅ ${qty} packets sold to ${cust.name}`, 2000, 'success');
     await refreshUI();
     return true;
   } catch (error) {
-    showToast('Error processing sale');
+    showToast('Error processing sale', 2000, 'error');
     return false;
   }
 }
@@ -514,10 +550,16 @@ async function addPayment(customerId, amount) {
   amount = parseFloat(amount);
   const cust = customers.find(c => c._id === customerId);
   if (!cust) return false;
-  if (amount <= 0) { showToast('Enter valid amount'); return false; }
-  if (amount > cust.udhaar) { showToast(`Due amount is ₹${cust.udhaar}`); return false; }
+  if (amount <= 0) { 
+    showToast('Enter valid amount', 2000, 'error'); 
+    return false; 
+  }
+  if (amount > cust.udhaar) { 
+    showToast(`Due amount is only ₹${cust.udhaar}`, 2000, 'error'); 
+    return false; 
+  }
   
-  showToast('Processing payment...', 800);
+  showToast('Processing payment...', 1000, 'info');
   
   try {
     const ratio = amount / cust.udhaar;
@@ -528,29 +570,32 @@ async function addPayment(customerId, amount) {
     cust.paidPackets += packetsToConvert;
     
     await apiCall(`/customers/${customerId}`, 'PUT', cust);
-    showToast(`💵 ₹${amount} received from ${cust.name}`);
+    showToast(`💵 ₹${amount} received from ${cust.name}`, 2000, 'success');
     await refreshUI();
     return true;
   } catch (error) {
-    showToast('Error processing payment');
+    showToast('Error processing payment', 2000, 'error');
     return false;
   }
 }
 
 async function addInventory(qty) {
   qty = parseInt(qty);
-  if (qty <= 0) { showToast('Enter valid quantity'); return false; }
+  if (qty <= 0) { 
+    showToast('Enter valid quantity', 2000, 'error'); 
+    return false; 
+  }
   
-  showToast('Adding stock...', 800);
+  showToast('Adding stock...', 1000, 'info');
   
   try {
     inventory.available += qty;
     await apiCall('/inventory', 'PUT', { available: inventory.available });
-    showToast(`📦 Added ${qty} packets to inventory`);
+    showToast(`📦 Added ${qty} packets to inventory`, 2000, 'success');
     await refreshUI();
     return true;
   } catch (error) {
-    showToast('Error adding inventory');
+    showToast('Error adding inventory', 2000, 'error');
     return false;
   }
 }
@@ -564,20 +609,21 @@ function setupEventListeners() {
       item.classList.add('active');
       const tab = item.dataset.tab;
       
-      // Smooth view transition
       const views = document.querySelectorAll('.view');
       views.forEach(v => {
-        v.style.transition = 'opacity 0.2s ease-out';
-        v.classList.remove('active');
+        v.style.opacity = '0';
+        setTimeout(() => v.classList.remove('active'), 150);
       });
       
-      const activeView = document.getElementById(`view-${tab}`);
-      activeView.style.opacity = '0';
-      activeView.classList.add('active');
-      
       setTimeout(() => {
-        activeView.style.opacity = '1';
-      }, 10);
+        const activeView = document.getElementById(`view-${tab}`);
+        activeView.classList.add('active');
+        activeView.style.opacity = '0';
+        requestAnimationFrame(() => {
+          activeView.style.transition = 'opacity 0.25s ease-out';
+          activeView.style.opacity = '1';
+        });
+      }, 150);
       
       document.getElementById('fabAddSale').classList.toggle('hidden', tab !== 'customers');
       
@@ -608,8 +654,14 @@ function setupEventListeners() {
   });
   
   document.getElementById('fabAddSale')?.addEventListener('click', () => {
-    if (customers.length === 0) { showToast('Add a customer first'); return; }
-    if (inventory.available <= 0) { showToast('No stock! Add inventory first'); return; }
+    if (customers.length === 0) { 
+      showToast('Add a customer first', 2000, 'error'); 
+      return; 
+    }
+    if (inventory.available <= 0) { 
+      showToast('No stock! Add inventory first', 2000, 'error'); 
+      return; 
+    }
     
     const select = document.getElementById('saleCustomerSelect');
     select.innerHTML = customers.map(c => `<option value="${c._id}">${c.name}</option>`).join('');
@@ -625,8 +677,6 @@ function setupEventListeners() {
     const warning = document.getElementById('availabilityWarning');
     if (qty > inventory.available) {
       warning.textContent = `Only ${inventory.available} available!`;
-      warning.style.animation = 'shake 0.3s ease-out';
-      setTimeout(() => warning.style.animation = '', 300);
     } else {
       warning.textContent = '';
     }
@@ -650,9 +700,8 @@ function setupEventListeners() {
     const btn = e.target.closest('[data-action]');
     if (!btn) return;
     
-    // Button press animation
-    btn.style.transform = 'scale(0.95)';
-    setTimeout(() => btn.style.transform = '', 100);
+    btn.style.transform = 'scale(0.96)';
+    setTimeout(() => btn.style.transform = '', 120);
     
     const action = btn.dataset.action;
     const id = btn.dataset.id;
@@ -660,7 +709,10 @@ function setupEventListeners() {
     if (action === 'quickSale') {
       const cust = customers.find(c => c._id === id);
       if (cust) {
-        if (inventory.available <= 0) { showToast('No stock! Add inventory first'); return; }
+        if (inventory.available <= 0) { 
+          showToast('No stock! Add inventory first', 2000, 'error'); 
+          return; 
+        }
         const select = document.getElementById('saleCustomerSelect');
         select.innerHTML = customers.map(c => `<option value="${c._id}">${c.name}</option>`).join('');
         select.value = cust._id;
@@ -684,17 +736,12 @@ function setupEventListeners() {
     }
   });
   
-  // Close modals with smooth animation
   document.querySelectorAll('.modal').forEach(m => {
     m.addEventListener('click', (e) => { 
-      if (e.target === m) {
-        closeModal(m.id);
-        document.body.style.overflow = '';
-      }
+      if (e.target === m) closeModal(m.id);
     });
   });
   
-  // Keyboard support
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       document.querySelectorAll('.modal.show').forEach(m => closeModal(m.id));
@@ -702,29 +749,28 @@ function setupEventListeners() {
   });
 }
 
-// Add CSS animations dynamically
+// Inject animations
 const style = document.createElement('style');
 style.textContent = `
   @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(8px); }
+    from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
   }
   
-  @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    25% { transform: translateX(-4px); }
-    75% { transform: translateX(4px); }
+  @keyframes slideIn {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
   }
   
   .loading-spinner {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     border: 2px solid rgba(255,255,255,0.3);
     border-radius: 50%;
     border-top-color: white;
     display: inline-block;
-    animation: spin 0.6s linear infinite;
-    margin-right: 6px;
+    animation: spin 0.7s linear infinite;
+    margin-right: 8px;
   }
   
   @keyframes spin {
@@ -732,15 +778,60 @@ style.textContent = `
   }
   
   .view {
-    transition: opacity 0.2s ease-out;
-  }
-  
-  .modal {
     transition: opacity 0.25s ease-out;
   }
   
-  .btn:active {
-    transform: scale(0.96) !important;
+  .modal {
+    transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .modal-content {
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  
+  .btn {
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+  
+  .toast-message {
+    position: fixed;
+    bottom: 100px;
+    left: 20px;
+    right: 20px;
+    max-width: 420px;
+    margin: 0 auto;
+    padding: 16px 22px;
+    border-radius: 60px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 0.95rem;
+    z-index: 1000;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    pointer-events: none;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    backdrop-filter: blur(10px);
+  }
+  
+  .toast-message.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  .toast-success {
+    background: #16A34A;
+    color: white;
+  }
+  
+  .toast-error {
+    background: #DC2626;
+    color: white;
+  }
+  
+  .toast-info {
+    background: #EA580C;
+    color: white;
   }
 `;
 document.head.appendChild(style);
